@@ -44,11 +44,6 @@ class EvalWrapper(lmms):
         return self._tokenizer.encode(text=text, add_bos=True, add_eos=False)
 
 
-    # TODO: make this configurable once chameleon allows batching
-    @property
-    def batch_size(self):
-        return 1
-
     # not implemented
     @torch.no_grad()
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float | bool]]:
