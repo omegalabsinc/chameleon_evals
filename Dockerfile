@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM nvcr.io/nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update && apt-get install -y \
