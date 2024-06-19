@@ -39,6 +39,16 @@ class EvalWrapper(lmms):
             cfg.model.vqgan_ckpt_path,
         )
 
+    
+    def tok_encode(self, text: str, **kwargs) -> List[int]:
+        return self._tokenizer.encode(text=text, add_bos=True, add_eos=False)
+
+
+    # TODO: make this configurable once chameleon allows batching
+    @property
+    def batch_size(self):
+        return 1
+
     # not implemented
     @torch.no_grad()
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float | bool]]:
@@ -48,27 +58,32 @@ class EvalWrapper(lmms):
     def generate_until(self, requests: List[Instance]) -> List[str]:
         res = []
 
-        def _collate(x):
-            # the negative sign on len(toks) sorts descending - this has a few advantages:
-            # - time estimates will always be over not underestimates, which is more useful for planning
-            # - to know the size of a batch when going through the list, you know the first one is always the batch
-            #   padded context length. this is useful to simplify the batching logic and more importantly to make
-            #   automatic adaptive batches much much easier to implement
-            # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(x[0])
-            return -len(toks), x[0]
-    
-        re_ords = lmms_utils.Collator([reg.args for reg in requests], _collate, grouping=True)
-        chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
-        num_iters = len(requests) // self.batch_size if len(requests) % self.batch_size == 0 else len(requests) // self.batch_size + 1
-        pbar = tqdm(total=num_iters, disable=(self.rank != 0), desc="Model Responding")
+        # TODO: add proper batching here
+        pbar = tqdm(total=len(requests), desc="Model Responding")
 
-        for chunk in chunks:
-            contexts, all_gen_kwargs, doc_to_visuals, doc_ids, tasks, splits = zip(*chunk)
-            breakpoint()
+        for request in requests:
+            # breakpoint()
+            context, all_gen_kwarg, doc_to_visual, doc_id, task, split = request.args
+            
+            prompt = [{"type":"image", "value": image} for image in doc_to_visual(self.task_dict[task][split][doc_id])]
 
+            prompt.extend(
+                [
+                    {"type": "text", "value": context},
+                    {"type": "sentinel", "value": "<END-OF-TURN>"},
+                ]
+            )
+            
+            generated_tokens = self.model.generate(
+                prompt_ui=prompt
+            )
 
-        return None
+            generated_text = self.model.decode_text(generated_tokens)
+            res.append(generated_text)
+            pbar.update(1)
+
+        pbar.close()
+        return res
     
 
 
