@@ -16,4 +16,4 @@ run_eval_7b:
 		--cap-add SYS_PTRACE --cap-add=SYS_ADMIN --ulimit core=0 \
 		-v $(shell pwd):/app \
 		chameleon-evals \
-		python3 recipes/eval.py --config configs/eval_7b.yaml
+		python3 recipes/eval.py --config config/7b_eval.yaml
