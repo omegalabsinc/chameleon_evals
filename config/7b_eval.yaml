@@ -1,4 +1,34 @@
-# Config for EleutherEvalRecipe in eleuther_eval.py
+# Model Arguments
+model:
+  model_path: "./checkpoints/models/7b/"
+  tokenizer_path: "./checkpoints/tokenizer/text_tokenizer.json"
+  vqgan_config_path: "./checkpoints/tokenizer/vqgan.yaml"
+  vqgan_ckpt_path: "./checkpoints/tokenizer/vqgan.ckpt"
+
+# Environment
+device: cuda
+dtype: bf16
+seed: 217
+
+
+# LLM Eval specific eval args
+model_name: chameleon
+tasks: [
+  realworldqa,
+  llava_bench_coco,
+  mmmu
+]
+limit: null
+max_seq_length: 4096
+
+mm_eval_args:
+  output_path: ./logs/
+
+# Quantization specific args
+quantizer: null
+
+temperature: 0.6 # 0.8 and 0.6 are popular values to try
+top_k: 300# Config for EleutherEvalRecipe in eleuther_eval.py
 #
 # To launch, run the following command from root torchtune directory:
 #    tune run eleuther_eval --config eleuther_evaluation tasks=["truthfulqa_mc2","hellaswag"]

@@ -73,7 +73,7 @@ class EvalWrapper(lmms):
                 prompt_ui=prompt
             )
 
-            generated_text = self.model.decode_text(generated_tokens)
+            generated_text = self.model.decode_text(generated_tokens)[0]
             res.append(generated_text)
             pbar.update(1)
 
